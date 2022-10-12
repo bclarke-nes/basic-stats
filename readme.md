@@ -82,7 +82,7 @@ very different from this.
 
 #### Step-by-step instructions
 
-1.  Go to <https://rstudio.cloud/>
+1.  Go to <https://rstudio.cloud/> (will need to change to posit)
 2.  If you have an account, you can log in as normal. Otherwise, please
     create a new account by selecting Get started for free, following
     the steps, and then signing-in
