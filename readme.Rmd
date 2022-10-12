@@ -71,7 +71,7 @@ It is also possible to complete the training using the desktop version of Rstudi
 
 #### Step-by-step instructions
 
-1. Go to https://rstudio.cloud/
+1. Go to https://rstudio.cloud/ (will need to change to posit)
 2. If you have an account, you can log in as normal. Otherwise, please create a new account by selecting Get started for free, following the steps, and then signing-in
 3. Once you’ve signed-in to RStudio Cloud, add a new project by clicking New Project >> New Project from a Git repository. When prompted, enter the URL https://github.com/bclarke-nes/basic-stats
 4. That will give you a new project containing the files needed for this training
