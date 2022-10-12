@@ -4,6 +4,7 @@
 /archive
 knit_list.r
 /basic_stats-*
+readme.md
 
 # History files
 .Rhistory
