@@ -3,6 +3,7 @@
 *.docx
 /archive
 knit_list.r
+/basic_stats-*
 
 # History files
 .Rhistory

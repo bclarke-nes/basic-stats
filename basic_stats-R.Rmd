@@ -554,8 +554,13 @@ We'll need an extra tool to describe the way these distributions differ, and we'
 
 ### Standard deviation and friends
 
-* what's the problem with efd - cumbersome
-* what's the answer - theoretical distributions
+Let's add some extra information to our graphs here.
+
+
+
+## Theoretical distributions
+
+The answer to the cumbersome description of data that we've done so far.
   * probability function
 
 ```{r eval=F, echo=F}
