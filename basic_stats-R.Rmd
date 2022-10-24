@@ -19,10 +19,10 @@ output:
     toc_depth: '2'
     pandoc_args: ["--extract-media", "."]
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 params:
-  r_only: TRUE
-  xl_only: FALSE
+  r_only: FALSE
+  xl_only: TRUE
 ---
 
 ```{r pre-setup, message=FALSE, warning=FALSE, echo=F}
@@ -62,19 +62,8 @@ Welcome to this introductory training session looking at statistics. A reminder 
 ## Data distributions I {.tabset}
 
 ### Introduction
-```{r eval=F, echo=F}
-# Data from [NHS opendata](https://www.opendata.nhs.scot/dataset/df10dbd4-81b3-4bfa-83ac-b14a5ec62296/resource/a5d4de3f-e340-455f-b4e4-e26321d09207/download/12.2_birthweight.csv)
 
-birthweight <- read_csv("data/birthweight.csv")
-
-# too aggregated to be useful
-birthweight %>%
-  group_by(Birthweight) %>%
-  ggplot() +
-  geom_col(aes(x=Birthweight, y=Livebirths))
-```
-
-Imagine that we are measuring some health or care value in an individual This could be, just for example:
+Imagine that we are measuring some numeric health or care value in an individual This could be, just for example:
 
 + height
 + blood pressure
@@ -83,6 +72,8 @@ Imagine that we are measuring some health or care value in an individual This co
 Without knowing what's generally expected, the number by itself doesn't tell us anything very interesting. We need some context to make sense of an individual number. For values like blood pressure, we often have reference ranges that tell us what a normal blood pressure might be. For other values (like height, or number of years since retirement) we generally have some clear idea of what a normal number might be from our daily experience. 
 
 But how about cases where we have neither of these ways of making sense of a number available to us. What should we do then? 
+
+This training is designed to give an introduction to thinking statistically. Over the course of the training, you'll learn (or, in many cases, revisit) techniques for making sense of numbers. You'll also learn techniques for applying these techniques to real-world data using statistical software.
 
 ----
 
@@ -120,7 +111,61 @@ uniform_data(400, 1, 6, 7, "Susan", "val")
 
 ```
 
-This suggests that Susan's `val` of 7 is something interesting because it's higher than any of the other comparison values of `val` that we found. What's more interesting (for this training at least) is that in gathering all those other values of `val` we've built a really important statistical tool here (although it might not feel like it!). This graph showing how a value varies is the **empirical frequency distribution**. We'll explore this in the next section.
+This suggests that Susan's `val` of 7 is something interesting because it's higher than any of the other comparison values of `val` that we found. What's more interesting (for this training at least) is that in gathering all those other values of `val` we've built a really important statistical tool here (although it might not feel like it!). This graph showing how a value varies in a population is called the **empirical frequency distribution**. We'll explore this in the next section.
+
+### Data handling
+
+
+```{r eval=params$xl_only, results='asis'}
+cat("In Excel, the most useful data-handling tips are:  \n  \n")
+cat("+ make your data into tables using (CTRL + T)  \n")
+cat("+ checking the formatting carefully, especially for dates  \n")
+cat("+ learning how to use absolute and relative references  \n")
+cat("+ consider separating the data and the calculations. You can put all the data in one sheet, then all the calculations in another, rather than mixing data and calculations across your workbook  \n")
+cat("+ use named variables and the name manager to keep track of which data is where  \n")
+
+```
+
+```{r eval=params$r_only, results='asis'}
+
+cat("Loading data into R is a topic in itself. The relevant chapter of [*R for Data Science*](https://r4ds.had.co.nz/data-import.html) is highly recommended. But some quick tips on good data handling practices:  \n  \n")
+cat("+ set up a data directory to hold your data files  \n")
+cat("+ strongly consider using Rstudio projects to manage file locations  \n")
+cat("+ use `head()` to check the data types that you're loading")
+cat("\n \n Some useful functions for loading data include:")
+```
+
+```{r eval=params$r_only, results='asis', echo=params$r_only}
+# readcsv() for local csv files
+read_csv("data/data_intro.csv") %>% head() %>% knitr::kable() 
+
+# read_excel for local excel files
+read_excel("data/data_intro.xlsx") %>% head() %>% knitr::kable() # for local Excel files
+
+# openxlsx is useful for opening remote Excel files
+openxlsx::read.xlsx("https://www.opendata.nhs.scot/dataset/4ace86c2-2c0f-4620-b544-932148c2c4d3/resource/530cb70a-f747-4b3b-b75a-06353ae78e8d/download/icd10-lookup.xlsx") %>% head() %>% knitr::kable() 
+
+# It's possible to load and process data immediately, without saving any data into the R environment
+read_csv("data/data_intro.csv") %>%
+  mutate(date = dmy(date)) %>%
+  group_by(month(date, label=T)) %>%
+  summarise(date = month(date, label=T), total=sum(total)) %>%
+  distinct() %>%
+  ggplot() +
+  geom_col(aes(x=date, y=total))
+
+# But more usually, you'll save data to a variable
+data_intro <- read_csv("data/data_intro.csv")
+```
+
+```{r eval=params$r_only, results='markup', echo=params$r_only}
+# inspect using head()
+data_intro %>%
+  head()
+
+```
+
+
 
 ### Empirical frequency distribution
 
@@ -161,9 +206,9 @@ So, an interim conclusion: I think we understand Susan's `val` quite differently
 
 ### Counting
 
-So far, we haven't done much to try and describe the frequency distributions that we've looked at. Instead, we've really just looked at their graphical representation by plotting them on a bar chart, so that we can see where a single value (Susan's, in this case) sits.
+So far, we haven't done much to try and describe the frequency distributions that we've looked at. Instead, we've really just looked at their graphical representation by plotting them so that we can see where a single value (Susan's, in this case) sits.
 
-However, much of the power of statistics comes from more precise ways of describing distributions. In this section, we'll cover some simple tools for doing this kind of **descriptive statistics**. We'll use some data like this:
+Much of the power of statistics comes from more precise ways of describing distributions. In this section, we'll cover some simple tools for doing this kind of **descriptive statistics**. We'll use some data like this:
 
 ```{r echo=F, message=F}
 # setting up some data that we can then describe
@@ -198,9 +243,7 @@ descriptive_data %>%
 
 Both of these graphs are histograms. The recipe for building a histogram is quite simple, and we'll introduce it in the subsection after next. Before we get to that point though we need to introduce two useful building blocks of descriptive statistics that we'll need to understand before we can properly do that work.
 
-From here, we'll also start to include some of the code that we're using to do our statistical work at this point, so keep an eye out for that. We'll explain the statistical concept, and then introduce the code that you'll use, one after another. 
-
-Luckily, the first of these descriptive statistics that we'll introduce will be very familiar: how many observations do we have here in total? The data that we're working on looks like this:
+The first of these descriptive statistics that we'll introduce will be very familiar: how many observations do we have here in total? The data that we're working on looks like this:
 
 ```{r echo=F}
 # Our data is called descriptive_data
@@ -211,6 +254,14 @@ head(descriptive_data) %>%
 
 We're just looking at the first few rows of our data here. But how many rows of data do we have in total?
 
+```{r echo=F, eval=params$xl_only, results='asis'}
+
+cat("Assuming that we have our data in a table named Table1, our Excel formula would be:  \n  \n")
+cat("`=COUNT(Table1)`")
+
+```
+
+
 ```{r eval=params$r_only, echo=params$r_only}
 # our data has one row per observation, so we can use nrow() to count rows.
 nrow(descriptive_data)
@@ -219,13 +270,11 @@ nrow(descriptive_data)
 length(descriptive_data) # =1
 ```
 
-Okay, so we have `r nrow(descriptive_data)` observations in total. What's next?
-
 ### Range
 
 Our next descriptive statistics building block is the range. 
 
-```{r eval=params$r_only, echo=params$r_only}
+```{r echo=F}
 ## code explanation. We take our existing descriptive_data_plot, and add two new layers to label the range. geom_segment does the line itself, and we get the end positions via the min() and max() functions. geom_label does the label, again with positions from the descriptive_data.
 
 descriptive_data_plot +
@@ -245,6 +294,15 @@ max(descriptive_data) - min(descriptive_data)
 
 # or using subsetting
 range(descriptive_data)[1] # gives the min, while range(descriptive_data)[2] gives max
+```
+
+```{r echo=F, eval=params$xl_only, results='asis'}
+
+cat("Again, with our data in Table1, we can calculate the minimum and maximum values as follows:  \n  \n")
+cat("`=MIN(Table1)`  \n")
+cat("`=MAX(Table1)`  \n  \n")
+cat("We can then calculate the range from these minimum and maximum values:  \n  \n")
+cat("`=MAX(Table1) - MIN(Table1)`  \n  \n")
 ```
 
 ### Quartiles
@@ -331,6 +389,44 @@ uniform_data(400, 36, 6, 5, "Susan", "val")
 
 Each of these graphs have the same number of observations, and the same average. What's different here is the spread of the values. We'll explore the implications of spread more fully in a later section.
 
+To calculate quartiles:
+
+```{r echo=F, eval=params$xl_only, results='asis'}
+
+cat("Again, with our data in Table1, we can calculate quartiles as follows:  \n  \n")
+
+cat("Lower bound of first quartile: `=QUARTILE.INC(Table1, 0)`  \n")
+cat("Upper bound of first quartile: `=QUARTILE.INC(Table1, 1)`  \n")
+cat("Upper bound of second quartile: `=QUARTILE.INC(Table1, 2)`  \n")
+cat("Upper bound of third quartile: `=QUARTILE.INC(Table1, 3)`  \n")
+cat("Upper bound of fourth quartile: `=QUARTILE.INC(Table1, 4)`  \n")
+
+cat("  \n  \nTo calculate percentiles, we use `=PERCENTILE.EXC`:  \n")
+cat("Upper bound of first centile: `=PERCENTILE.EXC(Table1, 0.01)`  \n")
+cat("Upper bound of 90th centile: `=PERCENTILE.EXC(Table1, 0.9)`  \n")
+  
+cat("  \n  \nTo calculate which percentile a value would be located in, we use `=PERCENRANK.EXC`:  \n")
+cat("Percentile rank of the value in C16: `=PERCENTRANK.EXC(Table1, C16)`  \n")
+
+```
+
+```{r echo=params$r_only, eval=params$r_only, results='markup'}
+# use the quantile() function to obtain the quantiles for your data, which gives you a quartile by default
+quantile(data_intro$total)
+
+# use indexing to access individual values
+quantile(data_intro$total)[5] - quantile(data_intro$total)[1]
+
+# get different quantiles using probs
+quantile(data_intro$total, probs = seq(0, 1, 0.2)) # e.g. for quintiles
+quantile(data_intro$total, probs = seq(0, 1, 0.1)) # e.g. for deciles
+
+# use cut() to divide a value into quantile groups 
+data_intro %>%
+  mutate(quantile = cut(total, breaks=quantile(data_intro$total))) %>%
+  head()
+
+```
 ### Histograms
 So we've looked at how to count values, and how to understand ranges. We'll now combine elements of both of these to produce a really useful visualisation for our data: the histogram. To make a histogram:
 
@@ -339,7 +435,7 @@ So we've looked at how to count values, and how to understand ranges. We'll now 
 + count the number of observations in each bin
 + plot the number of observations per bin 
 
-```{r eval=params$r_only, echo=params$r_only}
+```{r eval=T, echo=params$r_only}
 descriptive_data %>% # take our data, and pipe it to
   ggplot() + # ggplot, which is the main graphing function that we'll use
   geom_histogram(aes(a), fill="grey", color="black", binwidth=5) + # plot histogram of column a with a binwidth of 5
@@ -374,6 +470,10 @@ descriptive_data %>%
   ggtitle("An atrocious histogram")
 ```
 
+```{r eval=params$xl_only, echo=params$xl_only}
+knitr::include_graphics("img/histo.png")
+```
+
 ### Averages{.tabset}
 
 Let's go back and look at Susan's var again. In this graph, we can see that Susan's var is higher than most of the values of var that we've collected:
@@ -382,7 +482,7 @@ Let's go back and look at Susan's var again. In this graph, we can see that Susa
 uniform_data(400, 5, 6, 5, "Susan", "val")
 ```
 
-Interesting and decorative though graph like these are, it would be very useful if we could give a quick indication of what we might expect a typical value of `var` to be without going through all the trouble of plotting a graph. This is the reason that averages are useful - they give us a quick way of saying what we'd expect a typical value to be.
+Interesting and decorative though graph like these are, it would be very useful if we could give a quick indication of what we might expect a typical value of `var` to be without going through all the trouble of plotting a graph. This is the reason that averages are useful - they give us a quick way of saying what we'd expect a typical value to be. Statisticians also refer to this as the **central tendency** of the data - where the middle is located.
 
 In this section, we'll cover three ways of giving this average. As we'll explain, each have strengths and weaknesses - and that learning to interpret and use them correctly is the key job here.
 
@@ -429,12 +529,28 @@ mean(descriptive_data$a, na.rm=T)
 # round() is often useful with mean()
 round(mean(descriptive_data$a, na.rm=T),2)
 
+# you might also use the trim option if your data has outliers
+outliers_data <- c(descriptive_data$a, 100000, 60000000)
+mean(outliers_data)
+mean(outliers_data, na.rm=T, trim=0.05)
+
 #idiomatic tidyverse version
 descriptive_data %>%
   pull(a) %>%
   mean(., na.rm=T) %>%
   round(.,2)
 ```
+
+```{r echo=F, eval=params$xl_only, results='asis'}
+
+cat("With our data in Table1, we can calculate averages as follows:  \n  \n")
+
+cat("Mean of Table1: `=AVERAGE(Table1)`  \n")
+cat("Trimmed mean, omitting the extreme 5% of the range: `=TRIMMEAN(Table1, 0.05)`  \n")
+cat("Rounded mean to 2 decimal places: `=ROUND(AVERAGE(Table1), 2)`  \n")
+
+```
+
 
 #### Median
 **Median:** find the middle value of the range
@@ -459,7 +575,13 @@ descriptive_data %>%
   round(.,2)
 ```
 
+```{r echo=F, eval=params$xl_only, results='asis'}
 
+cat("Again, with our data in Table1, we can calculate medians as follows:  \n  \n")
+
+cat("Median of Table1: `=MEDIAN(Table1)`  \n")
+
+```
 
 #### Mode
 **Mode:** find the most common value in the data
@@ -481,7 +603,7 @@ data_ave_graph(1000, 5, 5, 5, "var", "Susan", mode)
 To calculate a mode:
 
 ```{r eval=params$r_only, echo=params$r_only}
-# no built-in mode in R, but lots of good ways to calculate one.
+# there's no built-in mode in R, but lots of good ways to calculate one.
 descriptive_data %>%
   mutate(rounded_a = round(a, 2)) %>%
   count(rounded_a) %>%
@@ -490,6 +612,13 @@ descriptive_data %>%
   mean()
 ```
 
+```{r echo=F, eval=params$xl_only, results='asis'}
+
+cat("Again, with our data in Table1, we can calculate the mode as follows:  \n  \n")
+
+cat("Mode of Table1: `=MODE(ROUND(Table1, 2))`  \n")
+
+```
 
 #### Comparison
 For this data, all three averages are very likely to be close together, if not identical. It's possible that they might not be - the data is generated randomly each time the graph is drawn - but the chances are that they will be very close together. 
@@ -554,7 +683,78 @@ We'll need an extra tool to describe the way these distributions differ, and we'
 
 ### Standard deviation and friends
 
-Let's add some extra information to our graphs here.
+Let's add some extra information to our graphs here. Standard deviation is a measure of spread. Diff from range, though, because (as the name suggests), it's standardised - so it won't be affected purely by the largest and smallest values in our data, but instead will give an indication of the general degree of spread found in the data.
+
+We'll need to work through an intermediate stage before we can calculate the standard deviation, though. Let's start with a simpler measure: variance.
+
+Let's look at the first few rows of our data again.
+
+```{r}
+descriptive_data %>%
+  head() %>%
+  knitr::kable()
+```
+
+These numbers vary. We can get a sense of how much they vary by calculating their distance from the mean:
+
+```{r}
+descriptive_data %>%
+  mutate(distance = a / mean(a)) %>%
+  head() %>%
+  knitr::kable()
+```
+
+However, this won't actually be a useful measure of spread. If we total up all the distance values in our set, we'll end up with a very small number (here it's `r round(descriptive_data %>% mutate(distance = a - mean(a)) %>% pull(distance) %>% sum(), 3)`). Because this average measure is based on the average distance from the mean, it has to be approximately equal to 0. This isn't useful to us, so we should square these distances instead:
+
+
+```{r}
+sum_of_squares <- descriptive_data %>% mutate(sq_distance = (a - mean(a))^2) %>% pull(sq_distance) %>% sum()
+```
+
+Once we've got this sum of squares, we can then divide it by the number of samples we have (actually n-1 for reasons related to the logic of sampling). That gives us an indication of the variance - how far away from the mean we would expect a number in our sample to be:
+
+```{r}
+variance <- sum_of_squares / nrow(descriptive_data)
+```
+
+Because that variance comes from squaring all our numbers, it's a bit hard to interpret, so the usual practice is to give the square root of the variance. This is the standard deviation:
+
+```{r}
+standard_deviation <- variance ^ 0.5
+standard_deviation
+```
+
+```{r echo=params$r_only, eval=params$r_only}
+cat("Luckily, in R, you don't need to do this manually. There are two useful functions that generate the variance and the standard deviation for you without all this manual work.  \n")
+
+var(descriptive_data$a)
+sd(descriptive_data$a)
+```
+
+
+
+
+```{r}
+
+descriptive_data %>%
+  ggplot() +
+  geom_histogram(aes(x=a))
+  
+
+
+```
+
+```{r eval=params$r_only, echo=params$r_only}
+sd(descriptive_data$a)
+
+# again, a good combo with round()
+
+round(sd(descriptive_data$a), 2)
+
+```
+
+
+
 
 
 
